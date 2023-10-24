@@ -4,7 +4,7 @@ import chisel3.util._
 class RegisterFile extends Module {
   val io = IO(new Bundle {
     //Define the module interface here (inputs/outputs)
-    val dataIn = Input(UInt(16.W))
+    val dataIn = Input(UInt(17.W))
     val dataOut = Output(UInt(32.W))
     val dataOutAluOnly = Output(UInt(32.W))
     val jumpRegisterOut = Output(UInt(32.W))
@@ -22,13 +22,20 @@ class RegisterFile extends Module {
   val R2 = io.registerControl(9, 5)
   val R3 = io.registerControl(4, 0)
   val R3out = io.registerControl(15) //Do we output R3 or R1?
+  val topOfRegister = io.registerControl(16)
 
 
   io.jumpRegisterOut := registerFile(31) //jumpRegister
   io.dataOutAluOnly := registerFile(R2) //Connecting the value from R2 t0 the top wire in the diagram in registerFile
 
   when(io.regWrite) {
-    registerFile(R1) := io.dataIn
+    when(topOfRegister){
+      val bottomOfDataIn = io.dataIn(15, 0)
+      val topToRegister = Cat(bottomOfDataIn, 0.U(16.W))
+      registerFile(R1) := topToRegister
+    }.otherwise{
+      registerFile(R1) := io.dataIn
+    }
   }
 
   when(R3out) {
