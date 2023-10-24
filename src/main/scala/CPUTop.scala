@@ -28,11 +28,34 @@ class CPUTop extends Module {
   val alu = Module(new ALU())
 
   //Connecting the modules
-  //programCounter.io.run := io.run
-  //programMemory.io.address := programCounter.io.programCounter
+  programCounter.io.run := io.run
+  programMemory.io.address := programCounter.io.programCounter
 
-  ////////////////////////////////////////////
-  //Continue here with your connections
+  controlUnit.io.instruction := programMemory.io.instructionRead
+
+  //Top part of diagram. Should the data going into the register file be from the instruction, the ALU, or the data memory
+  registerFile.io.dataIn := Mux(controlUnit.io.immediate, programMemory.io.instructionRead, Mux(controlUnit.io.fromAlu, alu.io.output, dataMemory.io.dataRead))
+
+  //The mux choosing what data flows into the alu, through the bottom most connection
+  alu.io.dataIn := Mux(controlUnit.io.immediateALU, programMemory.io.instructionRead, registerFile.io.dataOut)
+
+  //Finishing connection the register file, alu, and data memory together
+  alu.io.R2In := registerFile.io.dataOutAluOnly
+  dataMemory.io.address := alu.io.output
+  dataMemory.io.dataWrite := registerFile.io.dataOut
+
+  //Connecting the PC to get the correct address when branching
+  programCounter.io.programCounterJump := Mux(controlUnit.io.returnC, registerFile.io.jumpRegisterOut(15, 0), programMemory.io.instructionRead(15, 0))
+
+  //Connecting the non-mux control logic
+  registerFile.io.regWrite := controlUnit.io.regWrite
+  registerFile.io.registerControl := controlUnit.io.registerControl
+  alu.io.aluControl := controlUnit.io.aluControl
+  programCounter.io.branch := controlUnit.io.branch
+  programCounter.io.halt := controlUnit.io.halt
+  programCounter.io.reset := controlUnit.io.reset
+  dataMemory.io.writeEnable := controlUnit.io.writeEnable
+
   ////////////////////////////////////////////
 
   //This signals are used by the tester for loading the program to the program memory, do not touch

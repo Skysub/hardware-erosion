@@ -9,7 +9,7 @@ class ALU extends Module {
     val output = Output(UInt(32.W))
 
     //Alu Controls
-
+    val aluControl = Input(UInt(10.W)) //Placeholder, remember to change ControlUnit when implementing alu
   })
 
   //Implement this module here
