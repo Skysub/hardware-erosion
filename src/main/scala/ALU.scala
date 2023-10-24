@@ -7,6 +7,7 @@ class ALU extends Module {
     val R2In = Input(UInt(32.W))
     val dataIn = Input(UInt(32.W))
     val output = Output(UInt(32.W))
+    val equalCheck = Output(Bool()) //Outputs true if the inputs are equal, allways
 
     //Alu Controls
     val aluControl = Input(UInt(10.W)) //Placeholder, remember to change ControlUnit when implementing alu

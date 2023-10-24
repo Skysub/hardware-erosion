@@ -4,14 +4,15 @@ import chisel3.util._
 class RegisterFile extends Module {
   val io = IO(new Bundle {
     //Define the module interface here (inputs/outputs)
-    val dataIn = Input(UInt(17.W))
+    val dataIn = Input(UInt(32.W))
     val dataOut = Output(UInt(32.W))
     val dataOutAluOnly = Output(UInt(32.W))
     val jumpRegisterOut = Output(UInt(32.W))
+    val PC = Input(UInt(16.W))
 
     //Control
     val regWrite = Input(Bool())
-    val registerControl = Input(UInt(16.W)) //The 15 lowest bits are the R1, R2, and R3 fields. Rest are control bits
+    val registerControl = Input(UInt(18.W)) //The 15 lowest bits are the R1, R2, and R3 fields. Rest are control bits
   })
 
 
@@ -22,7 +23,8 @@ class RegisterFile extends Module {
   val R2 = io.registerControl(9, 5)
   val R3 = io.registerControl(4, 0)
   val R3out = io.registerControl(15) //Do we output R3 or R1?
-  val topOfRegister = io.registerControl(16)
+  val topOfRegister = io.registerControl(16) //Do we put the input into the top of the register?
+  val linkToPC = io.registerControl(17) //If we should save the PC to reg 31
 
 
   io.jumpRegisterOut := registerFile(31) //jumpRegister
@@ -36,6 +38,10 @@ class RegisterFile extends Module {
     }.otherwise{
       registerFile(R1) := io.dataIn
     }
+  }
+
+  when(linkToPC){
+    registerFile(31) := io.PC
   }
 
   when(R3out) {

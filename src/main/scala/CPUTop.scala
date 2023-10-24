@@ -46,6 +46,7 @@ class CPUTop extends Module {
 
   //Connecting the PC to get the correct address when branching
   programCounter.io.programCounterJump := Mux(controlUnit.io.returnC, registerFile.io.jumpRegisterOut(15, 0), programMemory.io.instructionRead(15, 0))
+  registerFile.io.PC := programCounter.io.programCounter
 
   //Connecting the non-mux control logic
   registerFile.io.regWrite := controlUnit.io.regWrite
@@ -55,6 +56,7 @@ class CPUTop extends Module {
   programCounter.io.halt := controlUnit.io.halt
   programCounter.io.reset := controlUnit.io.reset
   dataMemory.io.writeEnable := controlUnit.io.writeEnable
+  controlUnit.io.fromAluEqualsCheck := alu.io.equalCheck
 
   ////////////////////////////////////////////
 
