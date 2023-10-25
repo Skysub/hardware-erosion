@@ -1,0 +1,93 @@
+//Set corner pixels
+R(corner1) = 0
+R(corner2) = 0
+R(corner3) = 0 
+R(corner4) = 0 
+
+Loop i from 2 to 19 #1
+|
+//Set edgepixels
+R(i) = 0
+R(i+20*19) = 0
+R(i*20-19) = 0
+R(i*20) = 0
+|
+Loop j from 1 to 18 #100
+|
+if R(i+j*20) == 0 : JMP to #100
+|
+If R(i+j*20 + 20) == 0: JMP to #2
+If R(i+j*20 - 20) == 0: JMP to #2
+If R(i+j*20 + 1) == 0: JMP to #2
+If R(i+j*20 - 1) == 0: JMP to #2
+
+end loop #100
+
+end loop #1
+
+END
+
+//Set pixel to black
+#2
+R(i+j*20) = 0
+JMP #100
+______________________________________
+//STOR R1 R2 C
+
+MOVI R(0) 0
+MOVI R(1) 1
+
+STOR R(0) R(0) 0+400
+STOR R(0) R(0) 20+400
+STOR R(0) R(0) 399+400
+STOR R(0) R(0) 380+400
+
+MOVI R(20) 20
+MOVI R(10) 1
+MOVI R(9) 20
+MOVI R(8) 2
+
+#1LOOP
+STOR R(0) R(8) 400
+STOR R(0) R(8) 381+400
+MUL R(10) R(20) R(8)
+STOR R(0) R(10) -19+400
+STOR R(0) R(10) 400
+
+
+MOVI R(16) 1
+MOVI R(17) 19
+MOVI R(18) 1
+MOVI R(19) 1
+
+#2LOOP
+
+MUL R(18) R(16) R(20)
+ADD R(18) R(18) R(8)
+
+JEQ R(18) R(0) #2LOOPINC
+
+ADDI R(19) R(18) 20
+JEQ R(19) R(0) #ERODE
+
+ADDI R(19) R(18) -20
+JEQ R(19) R(0) #ERODE
+
+ADDI R(19) R(18) 1
+JEQ R(19) R(0) #ERODE
+
+ADDI R(19) R(18) -1
+JEQ R(19) R(0) #ERODE
+
+#2LOOPINC
+INC R(16)
+JNE R(16) R(17) #2LOOP
+
+INC R(8)
+JNE R(8) R(9) #1LOOP
+
+END
+
+#ERODE
+STOR R(0) R(18) 400
+JMP #2LOOPINC
