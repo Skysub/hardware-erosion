@@ -4,116 +4,118 @@ import chisel3.util._
 class ALU extends Module {
   val io = IO(new Bundle {
     //Define the module interface here (inputs/outputs)
-    val opcode = Input(UInt(6.W))
     val R2In = Input(UInt(32.W))
     val dataIn = Input(UInt(32.W))
     val output = Output(UInt(32.W))
     val equalCheck = Output(Bool()) //Outputs true if the inputs are equal, always
     //Alu Controls
-    val aluControl = Input(UInt(10.W)) //Placeholder, remember to change ControlUnit when implementing alu
+    val aluControl = Input(UInt(5.W)) //Placeholder, remember to change ControlUnit when implementing alu
   })
 
-  //Splitting up dataIn into R1In and R3In for easier readability
-  //In reality, R1 and R3 share the same bus and can't both be present in any ALU operation
-  val R1In = io.dataIn
-  val R3In = io.dataIn
+  //ALU Control bit explenation
+  //First bit determines if its signed or not (or if the logical operation is a bitshift operation)
+  //Second Bit determines whether its an arithmetic operation or not
+      //If not, then the third bit determines whether its a logical operation or a comparetive one
+  //The rest of the bits correspond to a particular operations
 
-  //Implement this module here
+  //Default value
+  io.equalCheck := false.B
 
-  switch(io.opcode){
+
+  switch(io.aluControl){
     //Arithmetic
-    //adds signed registers
-    is("b000001".U){
-      io.output := io.R2In + R3In
+    //adds signed
+    is("b11000".U){
+      io.output := io.R2In.asSInt + io.dataIn.asSInt
     }
-    //Adds signed register and immediate value
-    is("b000010".U){
-      io.output := io.R2In + R1In
-    }
-    //Adds unsigned registers
-    is("b000011".U){
-      io.output := io.R2In + R3In
-    }
-    //Adds unsigned register and immediate value
-    is("b000100".U){
-      io.output := io.R2In + R1In
+    //Adds unsigned
+    is("b01001".U){
+      io.output := io.R2In + io.dataIn
     }
     //Multiply signed registers
-    is("b000101".U){
-      io.output := io.R2In * R3In
+    is("b11010".U){
+      io.output := io.R2In.asSInt * io.dataIn.asSInt
     }
     //Multiply unsigned registers
-    is("b000110".U){
-      io.output := io.R2In * R3In
+    is("b01011".U){
+      io.output := io.R2In * io.dataIn
     }
     //Divide signed registers
-    is("b000111".U){
-      io.output := io.R2In / R3In
+    is("b11100".U){
+      io.output := io.R2In.asSInt / io.dataIn.asSInt
     }
     //Divide unsigned registers
-    is("b001000".U){
-      io.output := io.R2In / R3In
+    is("b01101".U){
+      io.output := io.R2In / io.dataIn
     }
     //Makes the number negative
-    is("b001001".U){
-      io.output := -R1In
+    is("b11110".U){
+      io.output := -(io.dataIn.asSInt)
     }
     //Increment
-    is("b001010".U){
-      io.output := R1In + 1.U
+    is("b01111".U){
+      io.output := io.dataIn + 1.U
     }
 
+
     //Logical
-    //OR two registers
-    is("b001011".U){
-      io.output := io.R2In | R3In
+    //OR two values
+    is("b00100".U){
+      io.output := io.R2In | io.dataIn
     }
-    //AND two registers
-    is("b001100".U){
-      io.output := io.R2In & R3In
-    }
-    //OR a register and immediate value
-    is("b001101".U){
-      io.output := io.R2In | R1In
-    }
-    //AND a register and immediate value
-    is("b001110".U){
-      io.output := io.R2In & R1In
+    //AND two values
+    is("b00101".U){
+      io.output := io.R2In & io.dataIn
     }
     //XOR the bits
-    is("b001111".U){
-      io.output := io.R2In ^ R3In
+    is("b00110".U){
+      io.output := io.R2In ^ io.dataIn
     }
-    //NOT the bits of a register
-    is("b010000".U){
-      io.output := ~R1In
+    //NOT the bits
+    is("b00111".U){
+      io.output := ~io.dataIn
     }
     //Bitshift left by immediate value
-    is("b010001".U){
-      io.output := ~io.R2In << R1In
+    is("b10100".U){
+      io.output := ~io.R2In << io.dataIn
     }
     //Bitshift right by immediate value
-    is("b010010".U){
-      io.output := ~io.R2In >> R1In
+    is("b10101".U){
+      io.output := ~io.R2In >> io.dataIn
     }
 
     //compare
-    //Set on less than
-    is("b010011".U){
-      when(io.R2In < R3In){io.output := 1.U} .otherwise(io.output := 0.U)
+    //Equality check (for the jump commands)
+    is("b00011".U) {
+       when(io.R2In.asSInt === io.dataIn.asSInt){io.equalCheck := true.B} .otherwise(io.equalCheck := false.B)
     }
-    //Set on less than immediate
-    is("b010100".U){
-      when(io.R2In < R3In){io.output := R1In} .otherwise(io.output := 0.U)
+
+    //Set on less than Signed
+    is("b10001".U){
+      when(io.R2In.asSInt < io.dataIn.asSInt){io.output := 1.U} .otherwise(io.output := 0.U)
+    }
+    //Set on less than immediate Signed
+    is("b10010".U){
+      when(io.R2In.asSInt < io.dataIn.asSInt){io.output := io.dataIn} .otherwise(io.output := 0.U)
     }
     //Set on less than unsigned
-    is("b010101".U){
-      when(io.R2In < R3In){io.output := 1.U} .otherwise(io.output := 0.U)
+    is("b00001".U){
+      when(io.R2In < io.dataIn){io.output := 1.U} .otherwise(io.output := 0.U)
     }
     //set on less than immediate unsigned
-    is("b010111".U){
-      when(io.R2In < R3In){io.output := R1In} .otherwise(io.output := 0.U)
+    is("b00010".U){
+      when(io.R2In < io.dataIn){io.output := io.dataIn} .otherwise(io.output := 0.U)
     }
-  }
 
+    //Special
+    //Pass through R2
+    is("b00000".U) {
+      io.output := io.R2In
+    }
+
+    //Future special operation
+    is("b11111".U) {
+    }
+
+  }
 }
