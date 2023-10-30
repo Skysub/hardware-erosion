@@ -21,6 +21,8 @@ If R(i+j*20 - 20) == 0: JMP to #2
 If R(i+j*20 + 1) == 0: JMP to #2
 If R(i+j*20 - 1) == 0: JMP to #2
 
+R(i+j*20) = 1
+
 end loop #100
 
 end loop #1
@@ -34,27 +36,34 @@ JMP #100
 ______________________________________
 //STOR R1 R2 C
 
+// Sæt konstanter
 MOVI R(0) 0
 MOVI R(1) 1
 
+// Erode hjørner
 STOR R(0) R(0) 0+400
 STOR R(0) R(0) 20+400
 STOR R(0) R(0) 399+400
 STOR R(0) R(0) 380+400
 
+// Sæt konstanter til multiplilation
 MOVI R(20) 20
 MOVI R(10) 1
+
+// Sæt konstanter til loops
 MOVI R(9) 20
 MOVI R(8) 2
 
 #1LOOP
+// Erode Øverste og nederste kant
 STOR R(0) R(8) 400
 STOR R(0) R(8) 381+400
+// Erode Venstre og højre kant
 MUL R(10) R(20) R(8)
 STOR R(0) R(10) -19+400
 STOR R(0) R(10) 400
 
-
+// Sæt konstanter til indre loop
 MOVI R(16) 1
 MOVI R(17) 19
 MOVI R(18) 1
@@ -62,32 +71,126 @@ MOVI R(19) 1
 
 #2LOOP
 
+// Sæt pixel der skal erodes
 MUL R(18) R(16) R(20)
 ADD R(18) R(18) R(8)
 
+//Spring hvis pixel er sort
 JEQ R(18) R(0) #2LOOPINC
 
+// Tjek nedre pixel
 ADDI R(19) R(18) 20
 JEQ R(19) R(0) #ERODE
 
+// Tjek øvre pixel
 ADDI R(19) R(18) -20
 JEQ R(19) R(0) #ERODE
 
+// Tjek højre pixel
 ADDI R(19) R(18) 1
 JEQ R(19) R(0) #ERODE
 
+// Tjek venstre pixel
 ADDI R(19) R(18) -1
 JEQ R(19) R(0) #ERODE
 
+// Lad vær med at erode'e pixel'en
+STOR R(1) R(18) 400
+
+// Inkrement indre loop
 #2LOOPINC
 INC R(16)
 JNE R(16) R(17) #2LOOP
 
+// Inkrement ydre loop
 INC R(8)
 JNE R(8) R(9) #1LOOP
 
 END
 
+// Erode pixel
 #ERODE
 STOR R(0) R(18) 400
 JMP #2LOOPINC
+
+______________________________________
+
+// Sæt konstant
+1010xx	00001 xxxxx  0000 0000 0000 0001	
+
+// Erode hjørner
+101010	00000 00000  0000 0001 1001 0000
+101010	00000 00000  0000 0001 1010 0100
+101010	00000 00000  0000 0110 0011 1111
+101010	00000 00000  0000 0110 0001 1000
+
+// Sæt konstanter til multiplilation
+1010xxx 10100 xxxxx  0000 0000 0001 0100
+1010xxx 01010 xxxxx  0000 0000 0000 0001
+
+// Sæt konstanter til loops
+1010xxx 01001 xxxxx  0000 0000 0001 0100
+1010xxx 01000 xxxxx  0000 0000 0000 0010
+
+Under er den 0000 0000 0000 1010. operation. #1LOOP
+
+// Erode Øverste og nederste kant
+101010	00000 01000  0000 0001 1001 0000
+101010	00000 01000  0000 0011 0000 1101
+
+// Erode Venstre og højre kant
+010101	01010 10100 01000 00000  000000
+101010	00000 01010  0000 0001 0111 1101
+101010	00000 01010  0000 0001 1001 0000 
+
+// Sæt konstanter til indre loop
+1010xxx 10000 xxxxx  0000 0000 0000 0001
+1010xxx 10001 xxxxx  0000 0000 0001 0011
+1010xxx 10011 xxxxx  0000 0000 0000 0001
+1010xxx 10100 xxxxx  0000 0000 0000 0001
+
+
+Under er den 0000 0000 0001 0011. operation. #2LOOP
+
+// Sæt pixel der skal erodes
+010101 10010 10000 10100 00000 000000
+010100 10010 10010 01000 00000 000000
+
+//Spring hvis pixel er sort
+1111xx 10010 00000 #2LOOPINC
+
+// Tjek nedre pixel
+10010 10011 10010 0000 0000 0001 0100
+1111xx 10011 00000 #ERODE
+
+// Tjek øvre pixel
+10010x 10011 10010 1111 1111 1110 1100
+1111xx 10011 00000 #ERODE
+
+// Tjek højre pixel
+10010x 10011 10010 0000 0000 0000 0001
+1111xx 10011 00000 #ERODE
+
+// Tjek venstre pixel
+10010x 10011 10010 1111 1111 1111 1111
+1111xx 10011 00000 #ERODE
+
+// Lad vær med at erode'e pixel'en
+101010 00001 10010 0000 0001 1001 0000
+
+// Inkrement indre loop
+Under er den 0000 0000 0001 1110. operation. #2LOOPINC
+010011 10000 00000 00000 00000 000000
+1110xx 10000 10001 #2LOOP
+
+// Inkrement ydre loop
+010011 01000 00000 00000 00000 000000
+1110xx 01000 01001 #1LOOP
+
+111111 x
+
+// Erode pixel
+Under er den 0000 0000 0010 0011. operation. #ERODE
+101010 00000 10010 0000 0001 1001 0000
+1100xx 00000 00000 #2LOOPINC
+
