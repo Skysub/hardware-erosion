@@ -108,7 +108,10 @@ object Images{
           //System.out.print(0x25A1.toChar + "  ")
           System.out.print("$  ")
         }else{
-          System.out.print("?   ")
+          if(image.get(x+20*y) < 100) System.out.print("0")
+          if(image.get(x+20*y) < 10) System.out.print("0")
+          System.out.print(image.get(x+20*y))
+          System.out.print(" ")
         }
       }
       System.out.print("\r\n")

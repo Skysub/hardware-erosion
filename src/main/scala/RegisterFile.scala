@@ -31,12 +31,12 @@ class RegisterFile extends Module {
   io.dataOutAluOnly := registerFile(R2) //Connecting the value from R2 t0 the top wire in the diagram in registerFile
 
   when(io.regWrite) {
+    val bottomOfDataIn = io.dataIn(15, 0)
     when(topOfRegister){
-      val bottomOfDataIn = io.dataIn(15, 0)
       val topToRegister = Cat(bottomOfDataIn, 0.U(16.W))
       registerFile(R1) := topToRegister
     }.otherwise{
-      registerFile(R1) := io.dataIn
+      registerFile(R1) := bottomOfDataIn
     }
   }
 

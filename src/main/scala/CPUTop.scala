@@ -19,6 +19,8 @@ class CPUTop extends Module {
     val testerProgMemDataWrite = Input(UInt (32.W))
   })
 
+  io.done := false.B
+
   //Creating components
   val programCounter = Module(new ProgramCounter())
   val dataMemory = Module(new DataMemory())
@@ -57,6 +59,7 @@ class CPUTop extends Module {
   programCounter.io.reset := controlUnit.io.reset
   dataMemory.io.writeEnable := controlUnit.io.writeEnable
   controlUnit.io.fromAluEqualsCheck := alu.io.equalCheck
+  io.done := controlUnit.io.halt
 
   ////////////////////////////////////////////
 
