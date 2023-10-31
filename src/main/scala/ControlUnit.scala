@@ -56,6 +56,7 @@ class ControlUnit extends Module {
         }
         is("b010111".U) { //NEG _010111
           io.aluControl := "b11110".U
+          R3out := false.B
         }
 
         //Unsigned ops _0100xx
@@ -70,6 +71,7 @@ class ControlUnit extends Module {
         }
         is("b010011".U) { //INC _010011
           io.aluControl := "b01111".U
+          R3out := false.B
         }
 
         //Logical operations
@@ -84,6 +86,7 @@ class ControlUnit extends Module {
         }
         is("b011011".U) { //NOT _011011
           io.aluControl := "b00111".U
+          R3out := false.B
         }
 
         //Comparetive operations

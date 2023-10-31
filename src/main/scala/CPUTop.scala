@@ -59,6 +59,7 @@ class CPUTop extends Module {
   programCounter.io.reset := controlUnit.io.reset
   dataMemory.io.writeEnable := controlUnit.io.writeEnable
   controlUnit.io.fromAluEqualsCheck := alu.io.equalCheck
+  io.done := controlUnit.io.halt
 
   ////////////////////////////////////////////
 
