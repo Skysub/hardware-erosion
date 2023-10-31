@@ -20,13 +20,13 @@ class ALU extends Module {
 
   //Default value
   io.equalCheck := false.B
-
+  io.output := io.R2In
 
   switch(io.aluControl){
     //Arithmetic
     //adds signed
     is("b11000".U){
-      io.output := io.R2In.asSInt + io.dataIn.asSInt
+      io.output := (io.R2In.asSInt + io.dataIn.asSInt).asUInt
     }
     //Adds unsigned
     is("b01001".U){
@@ -34,7 +34,8 @@ class ALU extends Module {
     }
     //Multiply signed registers
     is("b11010".U){
-      io.output := io.R2In.asSInt * io.dataIn.asSInt
+      val temp = io.R2In.asSInt * io.dataIn.asSInt
+      io.output := temp(31, 0).asUInt
     }
     //Multiply unsigned registers
     is("b01011".U){
@@ -42,7 +43,7 @@ class ALU extends Module {
     }
     //Divide signed registers
     is("b11100".U){
-      io.output := io.R2In.asSInt / io.dataIn.asSInt
+      io.output := (io.R2In.asSInt / io.dataIn.asSInt).asUInt
     }
     //Divide unsigned registers
     is("b01101".U){
@@ -50,7 +51,7 @@ class ALU extends Module {
     }
     //Makes the number negative
     is("b11110".U){
-      io.output := -(io.dataIn.asSInt)
+      io.output := (-(io.dataIn.asSInt)).asUInt
     }
     //Increment
     is("b01111".U){
@@ -76,12 +77,40 @@ class ALU extends Module {
       io.output := ~io.dataIn
     }
     //Bitshift left by immediate value
-    is("b10100".U){
-      io.output := ~io.R2In << io.dataIn
+    is("b10100".U) {
+      when(io.dataIn > 31.U) {
+        io.output := 0.U(32.W)
+      }.otherwise {
+        when(io.dataIn > 20.U) {
+          val temp = io.R2In << 20.U
+          val shift = Wire(UInt(4.W))
+          shift := (io.dataIn - 20.U)
+          val temp2 = temp << shift
+          io.output := temp2(31, 0)
+        }.otherwise {
+          val shift = io.dataIn(4, 0)
+          val temp2 = io.R2In << shift
+          io.output := temp2(31, 0)
+        }
+      }
     }
     //Bitshift right by immediate value
     is("b10101".U){
-      io.output := ~io.R2In >> io.dataIn
+      when(io.dataIn > 31.U){
+        io.output := 0.U(32.W)
+      } .otherwise {
+        when(io.dataIn > 20.U) {
+          val temp = io.R2In >> 20.U
+          val shift = Wire(UInt(4.W))
+          shift := (io.dataIn - 20.U)
+          val temp2 = temp >> shift
+          io.output := temp2(31, 0)
+        } .otherwise {
+          val shift = io.dataIn(4, 0)
+          val temp2 = io.R2In >> shift
+          io.output := temp2(31, 0)
+        }
+      }
     }
 
     //compare

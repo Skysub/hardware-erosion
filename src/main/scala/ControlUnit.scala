@@ -20,17 +20,23 @@ class ControlUnit extends Module {
   })
   val opcode = io.instruction(31,26)
 
+  val R3out = Wire(UInt(1.W))
+  val topOfRegister = Wire(UInt(1.W))
+  val linkToPC = Wire(UInt(1.W))
+
   //default values
+  R3out := 1.U //Do we output R3 or R1?
+  topOfRegister := 0.U //Do we put the input into the top of the register?
+  linkToPC := 0.U //If we should save the PC to reg 31
+
   io.returnC := false.B;
-  val R3out = 1.U(1.W) //Do we output R3 or R1?
-  val topOfRegister = 0.U(1.W) //Do we put the input into the top of the register?
-  val linkToPC = 0.U(1.W) //If we should save the PC to reg 31
   io.immediate := false.B //Data going in to the register file comes from instruction (else from alu/mem)
   io.regWrite := false.B //write to register
   io.immediateALU := false.B //data going into alu comes from instruction
   io.fromAlu := true.B //Data going into register file comes from alu (not mem)
   io.writeEnable := false.B //Write to memory
   io.aluControl := "b00000".U
+  io.branch := false.B
 
   when(io.instruction(31) === 0.U){
     when(io.instruction(30) === 1.U) { //Register type operation _01xxxx
@@ -84,7 +90,7 @@ class ControlUnit extends Module {
         is("b011100".U) { //SLT _011100
           io.aluControl := "b10001".U
         }
-        is("b011001".U) { //SLI _011101
+        is("b011101".U) { //SLI _011101
           io.aluControl := "b10010".U
         }
         is("b011110".U) { //SLU  _011110
@@ -101,7 +107,7 @@ class ControlUnit extends Module {
         io.regWrite := true.B
         io.immediate := true.B
         when(io.instruction(27) === 1.U) { //Moving into upper part
-          topOfRegister := 1.U
+          topOfRegister := true.B
         }
       } .otherwise {
         when(io.instruction(27) === 1.U){
