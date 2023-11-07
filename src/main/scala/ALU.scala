@@ -125,7 +125,7 @@ class ALU extends Module {
     }
     //Set on less than immediate Signed
     is("b10010".U){
-      when(io.R2In.asSInt < io.dataIn.asSInt){io.output := io.dataIn} .otherwise(io.output := 0.U)
+      when(io.R2In.asSInt < io.dataIn.asSInt){io.output := 1.U} .otherwise(io.output := 0.U)
     }
     //Set on less than unsigned
     is("b00001".U){
@@ -133,7 +133,7 @@ class ALU extends Module {
     }
     //set on less than immediate unsigned
     is("b00010".U){
-      when(io.R2In < io.dataIn){io.output := io.dataIn} .otherwise(io.output := 0.U)
+      when(io.R2In < io.dataIn){io.output := 1.U} .otherwise(io.output := 0.U)
     }
 
     //Special

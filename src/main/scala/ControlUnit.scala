@@ -11,7 +11,7 @@ class ControlUnit extends Module {
     val immediateALU = Output(Bool())
     val returnC = Output(Bool())
     val regWrite = Output(Bool())
-    val registerControl = Output(UInt(18.W))
+    val registerControl = Output(UInt(19.W))
     val aluControl = Output(UInt(5.W))
     val branch = Output(Bool())
     val halt = Output(Bool())
@@ -23,6 +23,8 @@ class ControlUnit extends Module {
   val R3out = Wire(UInt(1.W))
   val topOfRegister = Wire(UInt(1.W))
   val linkToPC = Wire(UInt(1.W))
+  val regImmediate = Wire(UInt(1.W))
+  regImmediate := io.immediate
 
   //default values
   R3out := 1.U //Do we output R3 or R1?
@@ -95,12 +97,14 @@ class ControlUnit extends Module {
         }
         is("b011101".U) { //SLI _011101
           io.aluControl := "b10010".U
+          io.immediateALU := true.B
         }
         is("b011110".U) { //SLU  _011110
           io.aluControl := "b00001".U
         }
         is("b011111".U) { //SLUI _011111
           io.aluControl := "b00010".U
+          io.immediateALU := true.B
         }
       }
     }
@@ -134,9 +138,10 @@ class ControlUnit extends Module {
       io.immediateALU := true.B
       when(io.instruction(28) === 1.U){ //The 2 arithmetic operations _1001xx
         when(io.instruction(27) === 1.U){ //ADDI _10010x
+
           io.aluControl := "b11000".U
         }.otherwise { //ADDIU _10011x
-          io.aluControl := "b01000".U
+          io.aluControl := "b01001".U
         }
       } .otherwise { //The 4 arithmetic operations _1000xx
         switch(opcode) {
@@ -178,7 +183,8 @@ class ControlUnit extends Module {
   }
 
   //Constructs the registerFile controls
-  val t1 = Cat(linkToPC, topOfRegister)
+  val t0 = Cat(regImmediate, linkToPC)
+  val t1 = Cat(t0, topOfRegister)
   val t2 = Cat(t1, R3out)
   val adresses = io.instruction(25, 11)
   val regControlsDone = Cat(t2, adresses)

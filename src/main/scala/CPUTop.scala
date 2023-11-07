@@ -39,7 +39,7 @@ class CPUTop extends Module {
   registerFile.io.dataIn := Mux(controlUnit.io.immediate, programMemory.io.instructionRead, Mux(controlUnit.io.fromAlu, alu.io.output, dataMemory.io.dataRead))
 
   //The mux choosing what data flows into the alu, through the bottom most connection
-  alu.io.dataIn := Mux(controlUnit.io.immediateALU, programMemory.io.instructionRead, registerFile.io.dataOut)
+  alu.io.dataIn := Mux(controlUnit.io.immediateALU, Cat(0.U(16.W), programMemory.io.instructionRead(15, 0)), registerFile.io.dataOut)
 
   //Finishing connection the register file, alu, and data memory together
   alu.io.R2In := registerFile.io.dataOutAluOnly
