@@ -1,0 +1,105 @@
+NOOP
+//Setting the corners to 0
+STOR R0 R0 0
+STOR R0 R0 19
+STOR R0 R0 380
+STOR R0 R0 399
+
+MOV R10 19
+MOV R9 255
+MOV R8 400
+
+//Outer loop
+//R11 and R12 are x and y
+MOV R11 0
+#OUTERLOOP
+INC R11
+JEQ R11 R10 END //Go to end if the outer loop is done
+
+//Sets the edges to 0
+STOR R0 R11 0
+STOR R0 R11 380
+MOV R1 20
+MUL R2 R1 R11 
+STOR R0 R2 0
+STOR R0 R2 19
+
+//Inner loop
+MOV R12 0
+#INNERLOOP
+INC R12
+JEQ R12 R10 OUTERLOOP //Go to outer loop if inner loop is done
+JAL COORDS
+
+LOAD R1 R13 0 //Load the pixel at the current coords
+JNE R1 R9 FIRSTELSE //Check if the pixel is 255
+
+//Check if the adjacent pixels are black
+JAL CHECKBLACK
+MOV R1 1
+JEQ R1 R15 FIRSTELSE //Set pixel black
+STOR R9 R14 0
+JMP INNERLOOP
+
+#FIRSTELSE
+STOR R0 R14 0 //Set pixel black
+JMP INNERLOOP //End of innerloop
+
+
+#END //End of program
+HALT
+
+
+//Subroutines
+
+//Two-dimensional to one dimensional
+//Parameters: R11->X, R12->Y, R13->output
+#COORDS
+MOV R20 20
+MUL R13 R12 R20
+ADD R13 R13 R11 //set the coords for the input image
+ADD R14 R13 R8 //Set the coords for the output image
+RET
+
+
+
+//Check if the adjacent pixels are black
+//sets R15 to 1 if any of them are black
+#CHECKBLACK
+MOV R15 0
+MOV R20 1
+NEG R20
+MOV R21 20
+NEG R21
+
+ADD R22 R13 R20
+LOAD R23 R22 0 //[X-1][Y]
+LOAD R24 R13 1 //[X+1][Y]
+ADD R22 R13 R21
+LOAD R25 R22 0 //[X][Y-1]
+LOAD R26 R13 20 //[X][Y+1]
+
+JEQ R0 R23 BLACK
+JEQ R0 R24 BLACK
+JEQ R0 R25 BLACK
+JEQ R0 R26 BLACK
+RET
+
+#BLACK
+MOV R15 1
+RET
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
