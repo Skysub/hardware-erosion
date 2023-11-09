@@ -19,7 +19,7 @@ class CPUTop extends Module {
     val testerProgMemDataWrite = Input(UInt (32.W))
   })
 
-  io.done := false.B
+  io.done := false.B //We're not done until i say we're done
 
   //Creating components
   val programCounter = Module(new ProgramCounter())
@@ -34,6 +34,8 @@ class CPUTop extends Module {
   programMemory.io.address := programCounter.io.programCounter
 
   controlUnit.io.instruction := programMemory.io.instructionRead
+
+  //It is recommended to look at the CPU top diagram while reading this
 
   //Top part of diagram. Should the data going into the register file be from the instruction, the ALU, or the data memory
   registerFile.io.dataIn := Mux(controlUnit.io.immediate, programMemory.io.instructionRead, Mux(controlUnit.io.fromAlu, alu.io.output, dataMemory.io.dataRead))

@@ -12,10 +12,10 @@ class ALU extends Module {
     val aluControl = Input(UInt(5.W)) //Placeholder, remember to change ControlUnit when implementing alu
   })
 
-  //ALU Control bit explenation
+  //ALU Control bit explanation
   //First bit determines if its signed or not (or if the logical operation is a bitshift operation)
   //Second Bit determines whether its an arithmetic operation or not
-      //If not, then the third bit determines whether its a logical operation or a comparetive one
+      //If not, then the third bit determines whether its a logical operation or a comparative one
   //The rest of the bits correspond to a particular operations
 
   //Default value
@@ -26,6 +26,8 @@ class ALU extends Module {
     //Arithmetic
     //adds signed
     is("b11000".U){
+      //Signed numbers exist only in the ALU, everywhere else numbers are unsigned.
+      //Thats why we cast the inputs to signed values, do the operation, the cast the output to be unsigned
       io.output := (io.R2In.asSInt + io.dataIn.asSInt).asUInt
     }
     //Adds unsigned
@@ -35,7 +37,7 @@ class ALU extends Module {
     //Multiply signed registers
     is("b11010".U){
       val temp = io.R2In.asSInt * io.dataIn.asSInt
-      io.output := temp(31, 0).asUInt
+      io.output := temp(31, 0).asUInt //The multiplication output is 64 bits, we discard the top part
     }
     //Multiply unsigned registers
     is("b01011".U){
@@ -77,6 +79,7 @@ class ALU extends Module {
       io.output := ~io.dataIn
     }
     //Bitshift left by immediate value
+    //Chisel doesn't allow bitshifting by more than 20 bits at a time. Which is why we have to do this.
     is("b10100".U) {
       when(io.dataIn > 31.U) {
         io.output := 0.U(32.W)
@@ -137,7 +140,7 @@ class ALU extends Module {
     }
 
     //Special
-    //Pass through R2
+    //Pass through R2, also the default value
     is("b00000".U) {
       io.output := io.R2In
     }

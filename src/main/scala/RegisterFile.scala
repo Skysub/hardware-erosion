@@ -23,30 +23,31 @@ class RegisterFile extends Module {
   val R2 = io.registerControl(9, 5)
   val R3 = io.registerControl(4, 0)
   val R3out = io.registerControl(15) //Do we output R3 or R1?
-  val topOfRegister = io.registerControl(16) //Do we put the input into the top of the register?
-  val linkToPC = io.registerControl(17) //If we should save the PC to reg 31
-  val immediate = io.registerControl(18) //If the data in value is an immediate value
+  val topOfRegister = io.registerControl(16) //Do we put the immediate value into the top of the register?
+  val linkToPC = io.registerControl(17) //If we should save the PC to reg 31 (jump register)
+  val immediate = io.registerControl(18) //If the dataIn value is an immediate value
 
 
   io.jumpRegisterOut := registerFile(31) //jumpRegister
-  io.dataOutAluOnly := registerFile(R2) //Connecting the value from R2 t0 the top wire in the diagram in registerFile
+  io.dataOutAluOnly := registerFile(R2) //Connecting the value from R2 to the top wire in the diagram in registerFile.
 
   when(io.regWrite) {
-    when(immediate) {
+    when(immediate) { //If we are writing a value from an instruction we only care about the immediate part.
       val bottomOfDataIn = io.dataIn(15, 0)
+
       when(topOfRegister) {
-        val topToRegister = Cat(bottomOfDataIn, 0.U(16.W))
+        val topToRegister = Cat(bottomOfDataIn, 0.U(16.W)) //Moving and immediate value into the top of a register set the bottom to 0.
         registerFile(R1) := topToRegister
       }.otherwise {
         registerFile(R1) := bottomOfDataIn
       }
-    } .otherwise{
+    } .otherwise{ //This value comes from memory or the ALU
       registerFile(R1) := io.dataIn
     }
   }
 
   when(linkToPC){
-    registerFile(31) := io.PC + 1.U
+    registerFile(31) := io.PC + 1.U //Add 1 to make sure we dont return to the same Jump and Link instruction
   }
 
   when(R3out) {
